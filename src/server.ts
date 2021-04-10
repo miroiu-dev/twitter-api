@@ -32,9 +32,7 @@ export async function startServer(mongo: MongoClient) {
 					});
 				}
 			} catch (err) {
-				res.status(500).send({
-					error: 'Something went wrong, try again later',
-				});
+				res.sendStatus(500);
 			}
 		}
 	});
