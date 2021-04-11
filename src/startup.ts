@@ -9,11 +9,3 @@ const main = async () => {
 };
 
 main();
-// (async () => {
-// 	try {
-// 		const hash = await argon2.hash('admin');
-// 		console.log(hash);
-// 	} catch (err) {
-// 		console.log(err);
-// 	}
-// })();

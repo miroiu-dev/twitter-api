@@ -1,11 +1,6 @@
-import { ObjectId } from 'bson';
-
-export type User = {
-	_id?: ObjectId;
+export type SignupRequest = {
 	username: string;
 	password: string;
-	email?: string;
-	phone?: string;
 	dateOfBirth: {
 		month: string;
 		day: number;
