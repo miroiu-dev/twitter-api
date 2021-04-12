@@ -109,4 +109,24 @@ export async function startServer(mongo: MongoClient) {
 	});
 
 	app.post('/tweet', requireAuth, (req, res) => {});
+
+	app.get('/people', async (req, res) => {
+		const { filter, count } = req.query;
+		let limit = parseInt(count?.toString() || '10') || 10;
+		limit = Math.max(10, limit);
+		limit = Math.min(50, limit);
+		const search = filter?.toString();
+
+		if (search?.trim()) {
+			const regex = new RegExp(search, 'i');
+			const users = await usersCol
+				.find({
+					$or: [{ username: regex }, { name: regex }],
+				})
+				.limit(limit)
+				.toArray();
+
+			res.send(users);
+		}
+	});
 }
