@@ -8,6 +8,7 @@ export type User = {
 	email?: string;
 	phone?: string;
 	profilePicture?: string;
+	country?: string;
 	dateOfBirth: {
 		month: string;
 		day: number;

@@ -8,6 +8,7 @@ import cors from 'cors';
 import argon2 from 'argon2';
 import { SignupRequest } from './requests/SignupRequest';
 import { requireAuth } from './middlewares/requireauth';
+import { getIpInfoMiddleware } from './middlewares/getIpInfo';
 
 const USER_SESSION = 'user.session';
 
@@ -67,7 +68,7 @@ export async function startServer(mongo: MongoClient) {
 		}
 	});
 
-	app.post('/signup', async (req, res) => {
+	app.post('/signup', getIpInfoMiddleware, async (req, res) => {
 		const { username, password, dateOfBirth } = req.body as SignupRequest;
 		if (username.length <= 4) {
 			res.status(400).send({ error: 'Username is too short' });
@@ -84,6 +85,7 @@ export async function startServer(mongo: MongoClient) {
 					username,
 					password: hash,
 					dateOfBirth,
+					country: req.ipInfo?.country,
 				};
 				const insertResult = await usersCol.insertOne(user);
 
