@@ -26,7 +26,7 @@ export async function startServer(mongo: MongoClient) {
 				origin: [process.env.WEBSITE_URL!, 'http://localhost:3000'],
 			})
 		)
-		.use(json({ limit: 500000 }))
+		.use(json({ limit: 5000000 }))
 		.use(
 			session({
 				secret: process.env.SESSION_SECRET || 'TWEET',
@@ -145,6 +145,7 @@ export async function startServer(mongo: MongoClient) {
 		if (user) {
 			const tweet = {
 				author: {
+					id: user._id!,
 					username: user.username,
 					name: user.name,
 					profilePicture: user.profilePicture,
@@ -192,19 +193,43 @@ export async function startServer(mongo: MongoClient) {
 		const { offset, limit } = req.query;
 		const realLimit = parseInt(limit as string) || 10;
 		const realOffset = parseInt(offset as string) || 0;
+		try {
+			const tweets = await tweetsCol
+				.find()
+				.project({ comments: 0 })
+				.sort({ createdAt: -1 })
+				.skip(realOffset)
+				.limit(realLimit)
+				.toArray();
 
-		const tweets = await tweetsCol
-			.find()
-			.project({ comments: 0 })
-			.sort({ createdAt: -1 })
-			.skip(realOffset)
-			.limit(realLimit)
-			.toArray();
+			res.send({
+				results: tweets,
+				offset: realOffset,
+				limit: realLimit,
+			});
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(500);
+		}
+	});
 
-		res.send({
-			results: tweets,
-			offset: realOffset,
-			limit: realLimit,
-		});
+	app.delete('/tweets/:id', requireAuth, async (req, res) => {
+		const { id } = req.params;
+
+		try {
+			const response = await tweetsCol.deleteOne({
+				_id: ObjectId.createFromHexString(id),
+				'author.id': ObjectId.createFromHexString(req.session.userId!),
+			});
+
+			if (response.deletedCount !== 1) {
+				res.sendStatus(403);
+			} else {
+				res.sendStatus(200);
+			}
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(500);
+		}
 	});
 }
