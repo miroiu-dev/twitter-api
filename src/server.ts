@@ -172,4 +172,24 @@ export async function startServer(mongo: MongoClient) {
 			res.send(users);
 		}
 	});
+
+	app.get('/tweets', requireAuth, async (req, res) => {
+		const { offset, limit } = req.query;
+		const realLimit = parseInt(limit as string) || 10;
+		const realOffset = parseInt(offset as string) || 0;
+
+		const tweets = await tweetsCol
+			.find()
+			.project({ comments: 0 })
+			.sort({ createdAt: -1 })
+			.skip(realOffset)
+			.limit(realLimit)
+			.toArray();
+
+		res.send({
+			results: tweets,
+			offset: realOffset,
+			limit: realLimit,
+		});
+	});
 }
