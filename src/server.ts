@@ -143,10 +143,9 @@ export async function startServer(mongo: MongoClient) {
 			};
 			await tweetsCol.insertOne(tweet);
 
-			const { numberOfComments, comments, ...tweetPreview } = tweet;
+			const { comments, ...tweetPreview } = tweet;
 			res.status(200).send({
 				...tweetPreview,
-				comments: numberOfComments,
 			});
 		} else {
 			res.sendStatus(400);
