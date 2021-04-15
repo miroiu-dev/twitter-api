@@ -1,6 +1,6 @@
 import express, { json } from 'express';
 import session from 'express-session';
-import { MongoClient } from 'mongodb';
+import { MongoClient, ObjectId } from 'mongodb';
 import MongoStore from 'connect-mongo';
 import { LoginRequest } from './requests/LoginRequest';
 import { User } from './data-access/models/user';
@@ -9,15 +9,22 @@ import argon2 from 'argon2';
 import { SignupRequest } from './requests/SignupRequest';
 import { requireAuth } from './middlewares/requireauth';
 import { getIpInfoMiddleware } from './middlewares/getIpInfo';
+import { Tweet } from './data-access/models/tweet';
 
 const USER_SESSION = 'user.session';
 
 export async function startServer(mongo: MongoClient) {
 	const db = mongo.db('twitter');
 	const usersCol = db.collection<User>('users');
+	const tweetsCol = db.collection<Tweet>('tweets');
 
 	const app = express()
-		.use(cors({ credentials: true, origin: process.env.WEBSITE_URL }))
+		.use(
+			cors({
+				credentials: true,
+				origin: [process.env.WEBSITE_URL!, 'http://localhost:3000'],
+			})
+		)
 		.use(json())
 		.use(
 			session({
@@ -38,8 +45,8 @@ export async function startServer(mongo: MongoClient) {
 			})
 		);
 
-	const port = process.env.PORT || 3001;
-	app.listen(port, () => {
+	const port = (process.env.PORT && parseInt(process.env.PORT)) || 3001;
+	app.listen(port, '0.0.0.0', () => {
 		console.log(`Example app listening at http://localhost:${port}`);
 	});
 
@@ -86,6 +93,7 @@ export async function startServer(mongo: MongoClient) {
 					password: hash,
 					dateOfBirth,
 					country: req.ipInfo?.country,
+					name: username,
 				};
 				const insertResult = await usersCol.insertOne(user);
 
@@ -110,7 +118,40 @@ export async function startServer(mongo: MongoClient) {
 		res.send(req.session.userId || 'Ok');
 	});
 
-	app.post('/tweet', requireAuth, (req, res) => {});
+	app.post('/tweets', requireAuth, async (req, res) => {
+		const { message, attachment } = req.body;
+		const user = await usersCol.findOne({
+			_id: ObjectId.createFromHexString(req.session.userId!),
+		});
+
+		const pictureUrl = undefined; // get url from cloudinary
+		const createdAt = new Date();
+		if (user) {
+			const tweet = {
+				author: {
+					username: user.username,
+					name: user.name,
+					profilePicture: user.profilePicture,
+				},
+				message: message,
+				attachment: pictureUrl,
+				createdAt: createdAt,
+				likes: 0,
+				retweet: 0,
+				numberOfComments: 0,
+				comments: [],
+			};
+			await tweetsCol.insertOne(tweet);
+
+			const { numberOfComments, comments, ...tweetPreview } = tweet;
+			res.status(200).send({
+				...tweetPreview,
+				comments: numberOfComments,
+			});
+		} else {
+			res.sendStatus(400);
+		}
+	});
 
 	app.get('/people', async (req, res) => {
 		const { filter, count } = req.query;
