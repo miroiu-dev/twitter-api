@@ -10,6 +10,7 @@ import { SignupRequest } from './requests/SignupRequest';
 import { requireAuth } from './middlewares/requireauth';
 import { getIpInfoMiddleware } from './middlewares/getIpInfo';
 import { Tweet } from './data-access/models/tweet';
+import { v2 as cloudinary } from 'cloudinary';
 
 const USER_SESSION = 'user.session';
 
@@ -25,7 +26,7 @@ export async function startServer(mongo: MongoClient) {
 				origin: [process.env.WEBSITE_URL!, 'http://localhost:3000'],
 			})
 		)
-		.use(json())
+		.use(json({ limit: 500000 }))
 		.use(
 			session({
 				secret: process.env.SESSION_SECRET || 'TWEET',
@@ -93,6 +94,8 @@ export async function startServer(mongo: MongoClient) {
 					password: hash,
 					dateOfBirth,
 					country: req.ipInfo?.country,
+					profilePicture:
+						'https://pbs.twimg.com/profile_images/1379353354866995202/apI6V404_normal.jpg',
 					name: username,
 				};
 				const insertResult = await usersCol.insertOne(user);
@@ -124,7 +127,20 @@ export async function startServer(mongo: MongoClient) {
 			_id: ObjectId.createFromHexString(req.session.userId!),
 		});
 
-		const pictureUrl = undefined; // get url from cloudinary
+		let pictureUrl = undefined; // get url from cloudinary
+		if (attachment) {
+			try {
+				const response = await cloudinary.uploader.upload(attachment, {
+					overwrite: true,
+					invalidate: true,
+				});
+
+				pictureUrl = response.url;
+			} catch (err) {
+				console.log(err);
+			}
+		}
+
 		const createdAt = new Date();
 		if (user) {
 			const tweet = {
