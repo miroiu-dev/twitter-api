@@ -153,11 +153,13 @@ export async function startServer(mongo: MongoClient) {
 				message: message,
 				attachment: pictureUrl,
 				createdAt: createdAt,
-				likes: 0,
-				retweet: 0,
+				numberOfLikes: 0,
+				numberOfRetweets: 0,
 				numberOfComments: 0,
 				comments: [],
-			};
+				likes: [],
+				retweets: [],
+			} as Tweet;
 			await tweetsCol.insertOne(tweet);
 
 			const { comments, ...tweetPreview } = tweet;
@@ -193,17 +195,37 @@ export async function startServer(mongo: MongoClient) {
 		const { offset, limit } = req.query;
 		const realLimit = parseInt(limit as string) || 10;
 		const realOffset = parseInt(offset as string) || 0;
+		const userId = ObjectId.createFromHexString(req.session.userId!);
 		try {
 			const tweets = await tweetsCol
 				.find()
-				.project({ comments: 0 })
+				.project({ comments: 0, likes: 0, retweets: 0 })
 				.sort({ createdAt: -1 })
 				.skip(realOffset)
 				.limit(realLimit)
 				.toArray();
 
+			// TODO: could be done better using the aggregation pipeline
+			const result = await Promise.all(
+				tweets.map(async t => {
+					const tweet = await tweetsCol.findOne({
+						_id: t._id,
+						likes: {
+							$elemMatch: {
+								$eq: userId,
+							},
+						},
+					});
+
+					return {
+						...t,
+						likedByUser: tweet !== null,
+					};
+				})
+			);
+
 			res.send({
-				results: tweets,
+				results: result,
 				offset: realOffset,
 				limit: realLimit,
 			});
@@ -230,6 +252,97 @@ export async function startServer(mongo: MongoClient) {
 		} catch (err) {
 			console.log(err);
 			res.sendStatus(500);
+		}
+	});
+
+	app.put('/tweets/:tweetId/likes', requireAuth, async (req, res) => {
+		const { tweetId } = req.params;
+
+		try {
+			const realTweetId = ObjectId.createFromHexString(tweetId);
+			const userId = ObjectId.createFromHexString(req.session.userId!);
+
+			const response = await tweetsCol.updateOne(
+				{ _id: realTweetId },
+				{
+					$addToSet: {
+						likes: userId,
+					},
+					$inc: {
+						numberOfLikes: 1,
+					},
+				}
+			);
+
+			res.sendStatus(200);
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(400);
+		}
+	});
+
+	app.delete('/tweets/:tweetId/likes', requireAuth, async (req, res) => {
+		const { tweetId } = req.params;
+
+		try {
+			const realTweetId = ObjectId.createFromHexString(tweetId);
+			const userId = ObjectId.createFromHexString(req.session.userId!);
+
+			const response = await tweetsCol.updateOne(
+				{ _id: realTweetId },
+				{
+					$pull: {
+						likes: userId,
+					},
+					$inc: {
+						numberOfLikes: -1,
+					},
+				},
+				{ upsert: true }
+			);
+
+			res.sendStatus(200);
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(400);
+		}
+	});
+
+	app.get('/tweets/:username/likes', requireAuth, async (req, res) => {
+		const { username } = req.params;
+
+		const user = await usersCol.findOne({
+			username: username,
+		});
+
+		try {
+			if (user) {
+				const response = await tweetsCol
+					.find(
+						{
+							likes: {
+								$elemMatch: {
+									$eq: user._id,
+								},
+							},
+						},
+						{
+							projection: {
+								likes: 0,
+								comments: 0,
+								retweets: 0,
+							},
+						}
+					)
+					.toArray();
+
+				res.status(200).send(response);
+			} else {
+				res.sendStatus(404);
+			}
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(400);
 		}
 	});
 }

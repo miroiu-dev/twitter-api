@@ -8,8 +8,9 @@ type Comment = {
 		profilePicture?: string;
 	};
 	message: string;
-	likes: number;
-	retweet: number;
+	numberOfLikes: number;
+	numberOfRetweets: number;
+	createdAt: Date;
 };
 
 export type Tweet = {
@@ -25,6 +26,8 @@ export type Tweet = {
 	attachment?: string;
 	comments?: Comment[];
 	numberOfComments: number;
-	likes: number;
-	retweet: number;
+	numberOfLikes: number;
+	numberOfRetweets: number;
+	likes: ObjectId[];
+	retweets: ObjectId[];
 };
