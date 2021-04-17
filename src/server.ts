@@ -245,6 +245,23 @@ export async function startServer(mongo: MongoClient) {
 		}
 	});
 
+	app.get('/tweets/:id', requireAuth, async (req, res) => {
+		const { id } = req.params;
+		const realId = ObjectId.createFromHexString(id);
+		try {
+			const tweet = await tweetsCol.findOne({ _id: realId });
+			console.log(tweet);
+			if (tweet) {
+				res.status(200).send(tweet);
+			} else {
+				res.status(400);
+			}
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(400);
+		}
+	});
+
 	app.delete('/tweets/:id', requireAuth, async (req, res) => {
 		const { id } = req.params;
 
@@ -307,8 +324,7 @@ export async function startServer(mongo: MongoClient) {
 					$inc: {
 						numberOfLikes: -1,
 					},
-				},
-				{ upsert: true }
+				}
 			);
 
 			res.sendStatus(200);
@@ -398,8 +414,7 @@ export async function startServer(mongo: MongoClient) {
 					$inc: {
 						numberOfRetweets: -1,
 					},
-				},
-				{ upsert: true }
+				}
 			);
 
 			res.sendStatus(200);
