@@ -217,9 +217,19 @@ export async function startServer(mongo: MongoClient) {
 						},
 					});
 
+					const retweetTweet = await tweetsCol.findOne({
+						_id: t._id,
+						retweets: {
+							$elemMatch: {
+								$eq: userId,
+							},
+						},
+					});
+
 					return {
 						...t,
 						likedByUser: tweet !== null,
+						retweetedByUser: retweetTweet !== null,
 					};
 				})
 			);
@@ -320,7 +330,7 @@ export async function startServer(mongo: MongoClient) {
 				const response = await tweetsCol
 					.find(
 						{
-							likes: {
+							retweets: {
 								$elemMatch: {
 									$eq: user._id,
 								},
@@ -340,6 +350,59 @@ export async function startServer(mongo: MongoClient) {
 			} else {
 				res.sendStatus(404);
 			}
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(400);
+		}
+	});
+
+	app.put('/tweets/:tweetId/retweets', requireAuth, async (req, res) => {
+		const { tweetId } = req.params;
+
+		try {
+			const realTweetId = ObjectId.createFromHexString(tweetId);
+			const userId = ObjectId.createFromHexString(req.session.userId!);
+
+			const response = await tweetsCol.updateOne(
+				{ _id: realTweetId },
+				{
+					$addToSet: {
+						retweets: userId,
+					},
+					$inc: {
+						numberOfRetweets: 1,
+					},
+				}
+			);
+
+			res.sendStatus(200);
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(400);
+		}
+	});
+
+	app.delete('/tweets/:tweetId/retweets', requireAuth, async (req, res) => {
+		const { tweetId } = req.params;
+
+		try {
+			const realTweetId = ObjectId.createFromHexString(tweetId);
+			const userId = ObjectId.createFromHexString(req.session.userId!);
+
+			const response = await tweetsCol.updateOne(
+				{ _id: realTweetId },
+				{
+					$pull: {
+						retweets: userId,
+					},
+					$inc: {
+						numberOfRetweets: -1,
+					},
+				},
+				{ upsert: true }
+			);
+
+			res.sendStatus(200);
 		} catch (err) {
 			console.log(err);
 			res.sendStatus(400);
