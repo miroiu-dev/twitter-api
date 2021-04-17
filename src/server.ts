@@ -248,11 +248,33 @@ export async function startServer(mongo: MongoClient) {
 	app.get('/tweets/:id', requireAuth, async (req, res) => {
 		const { id } = req.params;
 		const realId = ObjectId.createFromHexString(id);
+		const userId = ObjectId.createFromHexString(req.session.userId!);
 		try {
 			const tweet = await tweetsCol.findOne({ _id: realId });
+			const isLiked = await tweetsCol.findOne({
+				_id: realId,
+				likes: {
+					$elemMatch: {
+						$eq: userId,
+					},
+				},
+			});
+			const retweetTweet = await tweetsCol.findOne({
+				_id: realId,
+				retweets: {
+					$elemMatch: {
+						$eq: userId,
+					},
+				},
+			});
+
 			console.log(tweet);
 			if (tweet) {
-				res.status(200).send(tweet);
+				res.status(200).send({
+					...tweet,
+					likedByUser: isLiked !== null,
+					retweetedByUser: retweetTweet !== null,
+				});
 			} else {
 				res.status(400);
 			}
