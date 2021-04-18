@@ -445,4 +445,87 @@ export async function startServer(mongo: MongoClient) {
 			res.sendStatus(400);
 		}
 	});
+
+	type Comment = {
+		_id?: ObjectId;
+		author: {
+			name: string;
+			username: string;
+			profilePicture?: string;
+		};
+		message: string;
+		numberOfLikes: number;
+		numberOfRetweets: number;
+		createdAt: Date;
+	};
+
+	app.put('/tweets/:tweetId/comments', requireAuth, async (req, res) => {
+		const { tweetId } = req.params;
+
+		const userId = ObjectId.createFromHexString(req.session.userId!);
+		const realId = ObjectId.createFromHexString(tweetId);
+
+		const user = await usersCol.findOne({ _id: userId });
+		const { message, attachment } = req.body;
+		const id = new ObjectId();
+
+		try {
+			if (user) {
+				await tweetsCol.updateOne(
+					{ _id: realId },
+					{
+						$addToSet: {
+							comments: {
+								_id: id,
+								author: {
+									name: user.name,
+									username: user.username,
+									profilePicture: user.profilePicture,
+								},
+								createdAt: new Date(),
+								message,
+								numberOfLikes: 0,
+								numberOfRetweets: 0,
+								attachment,
+							},
+						},
+						$inc: {
+							numberOfComments: 1,
+						},
+					}
+				);
+				res.sendStatus(200);
+			} else {
+				res.sendStatus(400);
+			}
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(400);
+		}
+	});
+
+	app.get('/tweets/:tweetId/comments', requireAuth, async (req, res) => {
+		const { tweetId } = req.params;
+
+		const realId = ObjectId.createFromHexString(tweetId);
+		const { offset, limit } = req.query;
+
+		const realLimit = parseInt(limit as string) || 10;
+		const realOffset = parseInt(offset as string) || 0;
+
+		try {
+			const response = await tweetsCol.findOne({ _id: realId });
+			if (response) {
+				const { comments, ...t } = response;
+				comments?.sort(
+					(a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+				);
+
+				res.send(comments?.slice(realOffset, realLimit + realOffset));
+			}
+		} catch (err) {
+			console.log(err);
+			res.sendStatus(400);
+		}
+	});
 }

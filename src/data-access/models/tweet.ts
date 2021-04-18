@@ -11,12 +11,13 @@ type Comment = {
 	numberOfLikes: number;
 	numberOfRetweets: number;
 	createdAt: Date;
+	attachment: string;
 };
 
 export type Tweet = {
 	_id?: ObjectId;
 	author: {
-		id: ObjectId;
+		id?: ObjectId;
 		name: string;
 		username: string;
 		profilePicture?: string;
