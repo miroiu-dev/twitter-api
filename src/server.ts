@@ -268,7 +268,6 @@ export async function startServer(mongo: MongoClient) {
 				},
 			});
 
-			console.log(tweet);
 			if (tweet) {
 				res.status(200).send({
 					...tweet,
@@ -474,19 +473,24 @@ export async function startServer(mongo: MongoClient) {
 				await tweetsCol.updateOne(
 					{ _id: realId },
 					{
-						$addToSet: {
+						$push: {
 							comments: {
-								_id: id,
-								author: {
-									name: user.name,
-									username: user.username,
-									profilePicture: user.profilePicture,
-								},
-								createdAt: new Date(),
-								message,
-								numberOfLikes: 0,
-								numberOfRetweets: 0,
-								attachment,
+								$each: [
+									{
+										_id: id,
+										author: {
+											name: user.name,
+											username: user.username,
+											profilePicture: user.profilePicture,
+										},
+										createdAt: new Date(),
+										message,
+										numberOfLikes: 0,
+										numberOfRetweets: 0,
+										attachment,
+									},
+								],
+								$sort: { createdAt: -1 },
 							},
 						},
 						$inc: {
@@ -514,15 +518,16 @@ export async function startServer(mongo: MongoClient) {
 		const realOffset = parseInt(offset as string) || 0;
 
 		try {
-			const response = await tweetsCol.findOne({ _id: realId });
-			if (response) {
-				const { comments, ...t } = response;
-				comments?.sort(
-					(a, b) => a.createdAt.getTime() - b.createdAt.getTime()
-				);
+			const response = await tweetsCol
+				.find({ _id: realId })
+				.project({
+					comments: {
+						$slice: [realOffset, realLimit],
+					},
+				})
+				.toArray();
 
-				res.send(comments?.slice(realOffset, realLimit + realOffset));
-			}
+			res.send(response[0]);
 		} catch (err) {
 			console.log(err);
 			res.sendStatus(400);
