@@ -12,6 +12,8 @@ type Comment = {
 	numberOfRetweets: number;
 	createdAt: Date;
 	attachment: string;
+	likes: ObjectId[];
+	retweets: ObjectId[];
 };
 
 export type Tweet = {
