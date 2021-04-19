@@ -10,6 +10,7 @@ type Comment = {
 	message: string;
 	numberOfLikes: number;
 	numberOfRetweets: number;
+	numberOfComments: number;
 	createdAt: Date;
 	attachment: string;
 	likes: ObjectId[];

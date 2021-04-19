@@ -457,28 +457,29 @@ export async function startServer(mongo: MongoClient) {
 
 		try {
 			if (user) {
+				const comment = {
+					_id: id,
+					author: {
+						name: user.name,
+						username: user.username,
+						profilePicture: user.profilePicture,
+					},
+					createdAt: new Date(),
+					message,
+					numberOfComments: 0,
+					numberOfLikes: 0,
+					numberOfRetweets: 0,
+					likes: [],
+					retweets: [],
+					attachment,
+				};
+
 				await tweetsCol.updateOne(
 					{ _id: realId },
 					{
 						$push: {
 							comments: {
-								$each: [
-									{
-										_id: id,
-										author: {
-											name: user.name,
-											username: user.username,
-											profilePicture: user.profilePicture,
-										},
-										createdAt: new Date(),
-										message,
-										numberOfLikes: 0,
-										numberOfRetweets: 0,
-										likes: [],
-										retweets: [],
-										attachment,
-									},
-								],
+								$each: [comment],
 								$sort: { createdAt: -1 },
 							},
 						},
@@ -487,7 +488,7 @@ export async function startServer(mongo: MongoClient) {
 						},
 					}
 				);
-				res.sendStatus(200);
+				res.send(comment);
 			} else {
 				res.sendStatus(400);
 			}
@@ -502,59 +503,47 @@ export async function startServer(mongo: MongoClient) {
 
 		const realId = ObjectId.createFromHexString(tweetId);
 		const { offset, limit } = req.query;
-
+		const userId = ObjectId.createFromHexString(req.session.userId!);
 		const realLimit = parseInt(limit as string) || 10;
 		const realOffset = parseInt(offset as string) || 0;
 
-		// try {
-		// 	const response = await tweetsCol
-		// 		.find({ _id: realId })
-		// 		.project({
-		// 			comments: {
-		// 				$slice: [realOffset, realLimit],
-		// 			},
-		// 		})
-		// 		.toArray();
-		// 	console.log(response);
-		// 	res.send(response[0]);
-		// } catch (err) {
-		// 	console.log(err);
-		// 	res.sendStatus(400);
-		// }
 		try {
-			const response = await tweetsCol.findOne({ _id: realId });
-			if (response) {
-				const { comments, ...t } = response;
-				if (comments) {
-					const realComments = comments.slice(
-						realOffset,
-						realLimit + realOffset
-					);
-					realComments.sort(
-						(a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-					);
-					res.send(realComments);
-				}
-			} else {
-				res.sendStatus(400);
-			}
+			const response = await tweetsCol
+				.find({ _id: realId }, { projection: { comments: 1 } })
+				.project({
+					comments: {
+						$slice: [realOffset, realLimit],
+					},
+				})
+				.toArray();
+
+			res.send(
+				response[0].comments?.map(c => ({
+					...c,
+					likedByUser: !!c.likes.find(
+						p => p.toHexString() === userId.toHexString()
+					),
+					retweetedByUser: !!c.retweets.find(
+						p => p.toHexString() === userId.toHexString()
+					),
+				}))
+			);
 		} catch (err) {
 			console.log(err);
+			res.sendStatus(400);
 		}
 	});
 
 	app.put(
-		'/tweets/:tweetId/comments/:commentId/like',
+		'/tweets/comments/:commentId/likes',
 		requireAuth,
 		async (req, res) => {
-			const { tweetId } = req.params;
 			const { commentId } = req.params;
-			const realTweetId = ObjectId.createFromHexString(tweetId);
 			const realCommentId = ObjectId.createFromHexString(commentId);
 			const userId = ObjectId.createFromHexString(req.session.userId!);
 
 			try {
-				const response = await tweetsCol.updateOne(
+				await tweetsCol.updateOne(
 					{
 						'comments._id': realCommentId,
 					},
@@ -568,7 +557,98 @@ export async function startServer(mongo: MongoClient) {
 					}
 				);
 
-				console.log(response);
+				res.sendStatus(200);
+			} catch (err) {
+				console.log(err);
+				res.sendStatus(400);
+			}
+		}
+	);
+
+	app.delete(
+		'/tweets/comments/:commentId/likes',
+		requireAuth,
+		async (req, res) => {
+			const { commentId } = req.params;
+			const realCommentId = ObjectId.createFromHexString(commentId);
+			const userId = ObjectId.createFromHexString(req.session.userId!);
+
+			try {
+				await tweetsCol.updateOne(
+					{
+						'comments._id': realCommentId,
+					},
+					{
+						$inc: {
+							'comments.$.numberOfLikes': -1,
+						},
+						$pull: {
+							'comments.$.likes': userId,
+						},
+					}
+				);
+
+				res.sendStatus(200);
+			} catch (err) {
+				console.log(err);
+				res.sendStatus(400);
+			}
+		}
+	);
+	app.put(
+		'/tweets/comments/:commentId/retweets',
+		requireAuth,
+		async (req, res) => {
+			const { commentId } = req.params;
+			const realCommentId = ObjectId.createFromHexString(commentId);
+			const userId = ObjectId.createFromHexString(req.session.userId!);
+
+			try {
+				await tweetsCol.updateOne(
+					{
+						'comments._id': realCommentId,
+					},
+					{
+						$inc: {
+							'comments.$.numberOfRetweets': 1,
+						},
+						$addToSet: {
+							'comments.$.retweets': userId,
+						},
+					}
+				);
+
+				res.sendStatus(200);
+			} catch (err) {
+				console.log(err);
+				res.sendStatus(400);
+			}
+		}
+	);
+
+	app.delete(
+		'/tweets/comments/:commentId/retweets',
+		requireAuth,
+		async (req, res) => {
+			const { commentId } = req.params;
+			const realCommentId = ObjectId.createFromHexString(commentId);
+			const userId = ObjectId.createFromHexString(req.session.userId!);
+
+			try {
+				await tweetsCol.updateOne(
+					{
+						'comments._id': realCommentId,
+					},
+					{
+						$inc: {
+							'comments.$.numberOfRetweets': -1,
+						},
+						$pull: {
+							'comments.$.retweets': userId,
+						},
+					}
+				);
+
 				res.sendStatus(200);
 			} catch (err) {
 				console.log(err);
