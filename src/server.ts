@@ -534,6 +534,26 @@ export async function startServer(mongo: MongoClient) {
 		}
 	});
 
+	app.delete(
+		'/tweets/:tweetId/comments/:commentId',
+		requireAuth,
+		async (req, res) => {
+			const { commentId, tweetId } = req.params;
+			const realCommentId = ObjectId.createFromHexString(commentId);
+			const realTweetId = ObjectId.createFromHexString(tweetId);
+			try {
+				await tweetsCol.updateOne(
+					{ _id: realTweetId },
+					{ $pull: { comments: { _id: realCommentId } } }
+				);
+				res.sendStatus(200);
+			} catch (err) {
+				console.log(err);
+				res.sendStatus(400);
+			}
+		}
+	);
+
 	app.put(
 		'/tweets/comments/:commentId/likes',
 		requireAuth,
