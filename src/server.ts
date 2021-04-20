@@ -544,7 +544,12 @@ export async function startServer(mongo: MongoClient) {
 			try {
 				await tweetsCol.updateOne(
 					{ _id: realTweetId },
-					{ $pull: { comments: { _id: realCommentId } } }
+					{
+						$pull: { comments: { _id: realCommentId } },
+						$inc: {
+							numberOfComments: -1,
+						},
+					}
 				);
 				res.sendStatus(200);
 			} catch (err) {
