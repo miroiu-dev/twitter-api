@@ -26,7 +26,7 @@ export async function startServer(mongo: MongoClient) {
 				origin: [
 					process.env.WEBSITE_URL!,
 					'http://localhost:3000',
-					'https://twitter-api-cl.herokuapp.com/',
+					'https://twitter-api-cl.herokuapp.com',
 				],
 			})
 		)
