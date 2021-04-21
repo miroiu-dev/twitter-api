@@ -23,7 +23,11 @@ export async function startServer(mongo: MongoClient) {
 		.use(
 			cors({
 				credentials: true,
-				origin: [process.env.WEBSITE_URL!, 'http://localhost:3000'],
+				origin: [
+					process.env.WEBSITE_URL!,
+					'http://localhost:3000',
+					'https://twitter-api-cl.herokuapp.com/',
+				],
 			})
 		)
 		.use(json({ limit: 5000000 }))
