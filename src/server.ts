@@ -22,6 +22,7 @@ export async function startServer(mongo: MongoClient) {
 	const tweetsCol = db.collection<Tweet>('tweets');
 
 	const app = express()
+		.set('trust proxy', 1)
 		.use(
 			cors({
 				credentials: true,
