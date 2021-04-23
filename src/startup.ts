@@ -15,4 +15,5 @@ const main = async () => {
 	await startServer(mongoClient);
 };
 
+console.log('Starting up...');
 main();
