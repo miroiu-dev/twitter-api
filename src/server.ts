@@ -13,6 +13,7 @@ import { Tweet } from './data-access/models/tweet';
 import { v2 as cloudinary } from 'cloudinary';
 
 const USER_SESSION = 'user.session';
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 export async function startServer(mongo: MongoClient) {
 	const db = mongo.db('twitter');
@@ -41,7 +42,8 @@ export async function startServer(mongo: MongoClient) {
 					httpOnly: true,
 					signed: true,
 					maxAge: 1000 * 60 * 60 * 24 * 3,
-					sameSite: 'none',
+					secure: IS_PROD ? true : false,
+					sameSite: IS_PROD ? 'none' : 'lax',
 				},
 				store: MongoStore.create({
 					client: mongo,
