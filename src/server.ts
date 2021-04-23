@@ -41,7 +41,7 @@ export async function startServer(mongo: MongoClient) {
 					httpOnly: true,
 					signed: true,
 					maxAge: 1000 * 60 * 60 * 24 * 3,
-					sameSite: 'strict',
+					sameSite: 'none',
 				},
 				store: MongoStore.create({
 					client: mongo,
@@ -121,8 +121,8 @@ export async function startServer(mongo: MongoClient) {
 		});
 	});
 
-	app.get('/hc', requireAuth, (req, res) => {
-		res.send(req.session.userId || 'Ok');
+	app.get('/hc', (req, res) => {
+		res.send('Ok');
 	});
 
 	app.post('/tweets', requireAuth, async (req, res) => {
