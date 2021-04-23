@@ -25,6 +25,7 @@ export async function startServer(mongo: MongoClient) {
 		.use(
 			cors({
 				credentials: true,
+				origin: process.env.WEBSITE_URL!,
 			})
 		)
 		.use(json({ limit: 5000000 }))
