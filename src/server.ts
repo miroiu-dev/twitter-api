@@ -14,6 +14,7 @@ import { v2 as cloudinary } from 'cloudinary';
 
 const USER_SESSION = 'user.session';
 const IS_PROD = process.env.NODE_ENV === 'production';
+console.log('Running in production mode: ', IS_PROD);
 
 export async function startServer(mongo: MongoClient) {
 	const db = mongo.db('twitter');
