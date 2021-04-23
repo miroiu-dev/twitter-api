@@ -9,7 +9,7 @@ const getIpInfo = (ip: any): any => {
 
 	if (ip === '127.0.0.1' || ip === '::1') {
 		// return { error: "This won't work on localhost" };
-		ip = '95.76.1.241';
+		ip = process.env.FAKE_IP;
 	}
 
 	var lookedUpIP = geoip.lookup(ip);

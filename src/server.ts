@@ -41,7 +41,7 @@ export async function startServer(mongo: MongoClient) {
 					httpOnly: true,
 					signed: true,
 					maxAge: 1000 * 60 * 60 * 24 * 3,
-					sameSite: 'lax',
+					sameSite: 'strict',
 				},
 				store: MongoStore.create({
 					client: mongo,
