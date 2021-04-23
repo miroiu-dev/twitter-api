@@ -51,8 +51,8 @@ export async function startServer(mongo: MongoClient) {
 		);
 
 	const port = (process.env.PORT && parseInt(process.env.PORT)) || 3001;
-	app.listen(port, '0.0.0.0', () => {
-		console.log(`Example app listening at http://localhost:${port}`);
+	app.listen(port, () => {
+		console.log(`Listening on port ${port}`);
 	});
 
 	app.post('/login', async (req, res) => {
