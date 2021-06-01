@@ -99,7 +99,7 @@ export async function startServer(mongo: MongoClient) {
 					dateOfBirth,
 					country: req.ipInfo?.country,
 					profilePicture:
-						'https://pbs.twimg.com/profile_images/1379353354866995202/apI6V404_normal.jpg',
+						'https://abs.twimg.com/sticky/default_profile_images/default_profile_400x400.png',
 					name: username,
 				};
 				const insertResult = await usersCol.insertOne(user);
