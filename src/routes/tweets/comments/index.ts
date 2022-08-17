@@ -1,7 +1,6 @@
 import express from 'express';
 import { commentController } from '../../../controller/commentsController';
-import { useDatabase } from '../../../middlewares';
-import { requireAuth } from '../../../middlewares';
+import { useDatabase, requireAuth } from '../../../middlewares';
 const router = express.Router();
 
 router.use(requireAuth, useDatabase);
