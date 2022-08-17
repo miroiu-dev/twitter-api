@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import geoip from 'geoip-lite';
 
-const getIpInfo = (ip: any): any => {
-	console.log('rent');
+const getIpInformation = (ip: any): any => {
 	if (ip.includes('::ffff:')) {
 		ip = ip.split(':').reverse()[0];
 	}
@@ -25,12 +24,8 @@ const getIpInfo = (ip: any): any => {
 	};
 };
 
-export const getIpInfoMiddleware = (
-	req: Request,
-	res: Response,
-	next: Function
-) => {
-	const info = getIpInfo(req.ip);
+export const getIpInfo = (req: Request, res: Response, next: Function) => {
+	const info = getIpInformation(req.ip);
 	if (!info.error) {
 		req.ipInfo = info;
 	}

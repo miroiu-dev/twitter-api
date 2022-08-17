@@ -2,38 +2,35 @@
 	"name": "api",
 	"version": "1.0.0",
 	"description": "",
-	"main": "build/startup.js",
+	"main": "build/server.js",
 	"scripts": {
 		"start": "node .",
-		"dev": "nodemon --files src/startup.ts --project .",
+		"dev": "nodemon --files src/server.ts --project .",
 		"build": "tsc --project ."
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
-	"engines": {
-		"node": "14.x"
-	},
 	"dependencies": {
-		"argon2": "^0.27.2",
-		"cloudinary": "^1.25.1",
-		"connect-mongo": "^4.4.1",
-		"cors": "^2.8.5",
-		"dotenv": "^8.2.0",
-		"express": "^4.17.1",
-		"express-session": "^1.17.1",
-		"geoip-lite": "^1.4.2",
-		"mongodb": "^3.6.6"
+		"argon2": "0.28.7",
+		"body-parser": "^1.20.0",
+		"cloudinary": "1.30.1",
+		"connect-mongo": "4.6.0",
+		"cors": "2.8.5",
+		"dotenv": "16.0.1",
+		"express": "4.18.1",
+		"express-session": "1.17.3",
+		"geoip-lite": "1.4.6",
+		"mongodb": "4.8.1"
 	},
 	"devDependencies": {
-		"@types/cors": "^2.8.10",
-		"@types/express": "^4.17.11",
-		"@types/express-session": "^1.17.3",
-		"@types/geoip-lite": "^1.4.1",
-		"@types/mongodb": "^3.6.12",
-		"@types/node": "^14.14.37",
-		"nodemon": "^2.0.7",
-		"ts-node": "^9.1.1",
-		"typescript": "^4.2.4"
+		"@types/cors": "2.8.12",
+		"@types/express": "4.17.13",
+		"@types/express-session": "1.17.5",
+		"@types/geoip-lite": "1.4.1",
+		"@types/node": "18.7.6",
+		"nodemon": "2.0.19",
+		"ts-node": "10.9.1",
+		"typescript": "4.7.4"
 	}
 }

@@ -8,10 +8,7 @@ export const initMongoClient = () => {
 		throw new Error('Please specify a mongo connection string.');
 	}
 
-	const client = new MongoClient(uri, {
-		useNewUrlParser: true,
-		useUnifiedTopology: true,
-	});
+	const client = new MongoClient(uri);
 
 	return client.connect();
 };
