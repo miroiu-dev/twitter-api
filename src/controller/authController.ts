@@ -7,7 +7,6 @@ import { User } from '../data-access/models/user';
 
 const login = async (req: Request, res: Response) => {
 	const { username, password } = req.body as LoginRequest;
-	console.log(username);
 	const user = (await res.locals.usersCol.findOne({ username })) as User;
 	if (!user) {
 		res.status(400).send({ error: 'Username or password not found' });

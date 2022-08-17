@@ -12,7 +12,7 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 console.log('Running in production mode: ', IS_PROD);
 
 cloudinary.config({
-	cloud_name: process.env.CLOUDINARY_URL_NAME,
+	cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
 	api_key: process.env.CLOUDINARY_API_KEY,
 	api_secret: process.env.CLOUDINARY_API_SECRET,
 });
@@ -26,7 +26,7 @@ export const app = express()
 		})
 	)
 	.use(urlencoded({ extended: false }))
-	.use(json({ limit: '10mb' }))
+	.use(json({ limit: 5000000 }))
 	.use(
 		session({
 			secret: process.env.SESSION_SECRET || 'TWEET',
