@@ -1,5 +1,5 @@
 import express from 'express';
-import { tweetsController } from '../../controller/tweetsController';
+import { tweetsController } from '../../controller';
 import { useDatabase, auth } from '../../middlewares';
 const router = express.Router();
 

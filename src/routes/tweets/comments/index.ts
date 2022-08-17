@@ -1,5 +1,5 @@
 import express from 'express';
-import { commentController } from '../../../controller/commentsController';
+import { commentController } from '../../../controller';
 import { useDatabase, auth } from '../../../middlewares';
 const router = express.Router();
 

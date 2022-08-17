@@ -53,6 +53,7 @@ const comment = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const getComments = async (req: Request, res: Response) => {
@@ -89,6 +90,7 @@ const getComments = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const deleteComment = async (req: Request, res: Response) => {
@@ -110,6 +112,7 @@ const deleteComment = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const likeComment = async (req: Request, res: Response) => {
@@ -137,6 +140,7 @@ const likeComment = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const unlikeComment = async (req: Request, res: Response) => {
@@ -164,6 +168,7 @@ const unlikeComment = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const retweetComment = async (req: Request, res: Response) => {
@@ -191,6 +196,7 @@ const retweetComment = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const unretweetComment = async (req: Request, res: Response) => {
@@ -218,6 +224,7 @@ const unretweetComment = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 export const commentController = {

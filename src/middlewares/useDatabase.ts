@@ -10,6 +10,7 @@ export const useDatabase = async (
 ) => {
 	const mongo = await initMongoClient();
 	const db = mongo.db('twitter');
+	res.locals.mongo = mongo;
 	res.locals.tweetsCol = db.collection<Tweet>('tweets');
 	res.locals.usersCol = db.collection<User>('users');
 	next();

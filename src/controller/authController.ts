@@ -28,6 +28,7 @@ const login = async (req: Request, res: Response) => {
 			res.sendStatus(500);
 		}
 	}
+	await res.locals.mongo.close();
 };
 
 const signup = async (req: Request, res: Response) => {
@@ -66,6 +67,7 @@ const signup = async (req: Request, res: Response) => {
 			res.sendStatus(500);
 		}
 	}
+	await res.locals.mongo.close();
 };
 
 const logout = (req: Request, res: Response) => {

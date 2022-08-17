@@ -16,7 +16,7 @@ const getTweets = async (req: Request, res: Response) => {
 			.skip(realOffset)
 			.limit(realLimit)
 			.toArray()) as Tweet[];
-
+		const totalTweets = await res.locals.tweetsCol.countDocuments();
 		// TODO: could be done better using the aggregation pipeline
 		const result = await Promise.all(
 			tweets.map(async t => {
@@ -49,11 +49,13 @@ const getTweets = async (req: Request, res: Response) => {
 			results: result,
 			offset: realOffset,
 			limit: realLimit,
+			totalTweets: totalTweets,
 		});
 	} catch (err) {
 		console.log(err);
 		res.sendStatus(500);
 	}
+	await res.locals.mongo.close();
 };
 
 const post = async (req: Request, res: Response) => {
@@ -104,6 +106,7 @@ const post = async (req: Request, res: Response) => {
 	} else {
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const getTweetById = async (req: Request, res: Response) => {
@@ -142,6 +145,7 @@ const getTweetById = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const like = async (req: Request, res: Response) => {
@@ -168,6 +172,7 @@ const like = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const unlike = async (req: Request, res: Response) => {
@@ -194,6 +199,7 @@ const unlike = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const retweet = async (req: Request, res: Response) => {
@@ -220,6 +226,7 @@ const retweet = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const unretweet = async (req: Request, res: Response) => {
@@ -246,6 +253,7 @@ const unretweet = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 const deleteTweet = async (req: Request, res: Response) => {
@@ -266,6 +274,7 @@ const deleteTweet = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(500);
 	}
+	await res.locals.mongo.close();
 };
 
 export const likes = async (req: Request, res: Response) => {
@@ -304,6 +313,7 @@ export const likes = async (req: Request, res: Response) => {
 		console.log(err);
 		res.sendStatus(400);
 	}
+	await res.locals.mongo.close();
 };
 
 export const tweetsController = {
