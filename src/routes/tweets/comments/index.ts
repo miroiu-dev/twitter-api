@@ -1,9 +1,9 @@
 import express from 'express';
 import { commentController } from '../../../controller/commentsController';
-import { useDatabase, requireAuth } from '../../../middlewares';
+import { useDatabase, auth } from '../../../middlewares';
 const router = express.Router();
 
-router.use(requireAuth, useDatabase);
+router.use(auth, useDatabase);
 
 router.put('/:tweetId/comments', commentController.comment);
 

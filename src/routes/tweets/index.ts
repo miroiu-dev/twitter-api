@@ -1,9 +1,9 @@
 import express from 'express';
 import { tweetsController } from '../../controller/tweetsController';
-import { useDatabase, requireAuth } from '../../middlewares';
+import { useDatabase, auth } from '../../middlewares';
 const router = express.Router();
 
-router.use(requireAuth, useDatabase);
+router.use(auth, useDatabase);
 
 router.get('/:id', tweetsController.getTweetById);
 

@@ -1,3 +1,3 @@
 export { getIpInfo } from './getIpInfo';
-export { requireAuth } from './requireAuth';
+export { auth } from './auth';
 export { useDatabase } from './useDatabase';
